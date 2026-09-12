@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -7,9 +8,15 @@
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap"></noscript>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap"
+        media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap">
+    </noscript>
 </head>
+
 <body>
     <!-- Tactical Scanline & CRT Vignette Overlay -->
     <div class="crt-overlay"></div>
@@ -88,7 +95,8 @@
             <div class="strobe-icon">🔥</div>
             <div class="strobe-body">
                 <div class="strobe-title">THERMAL INTRUSION // OPEN FLAME DETECTED</div>
-                <div class="strobe-desc">Infrared thermal sensor triggered on GPIO33. High-temperature hazard detected.</div>
+                <div class="strobe-desc">Infrared thermal sensor triggered on GPIO33. High-temperature hazard detected.
+                </div>
             </div>
             <div class="strobe-tag">CRITICAL</div>
         </div>
@@ -97,7 +105,8 @@
             <div class="strobe-icon">☣️</div>
             <div class="strobe-body">
                 <div class="strobe-title">ATMOSPHERIC TOXICITY // MINE GAS / SMOKE SPIKE</div>
-                <div class="strobe-desc">MQ135 threshold breached on GPIO35. Hazardous gas/hydrocarbon concentration detected.</div>
+                <div class="strobe-desc">MQ135 threshold breached on GPIO35. Hazardous gas/hydrocarbon concentration
+                    detected.</div>
             </div>
             <div class="strobe-tag">HAZARD</div>
         </div>
@@ -106,7 +115,8 @@
             <div class="strobe-icon">⚠️</div>
             <div class="strobe-body">
                 <div class="strobe-title">CHASSIS INSTABILITY // ROLLOVER RISK DETECTED</div>
-                <div class="strobe-desc">MPU6050 reports total inclination exceeds safety ceiling or inverted chassis state.</div>
+                <div class="strobe-desc">MPU6050 reports total inclination exceeds safety ceiling or inverted chassis
+                    state.</div>
             </div>
             <div class="strobe-tag">WARNING</div>
         </div>
@@ -123,7 +133,7 @@
 
     <!-- Main Mission Control Body -->
     <div class="hud-main-container">
-        
+
         <!-- Tactical Navigation Bar -->
         <nav class="hud-nav">
             <button class="nav-tab active" data-tab="tab-fusion">
@@ -144,9 +154,9 @@
         <!-- TAB 1: SENSOR FUSION & TACTICAL DECK -->
         <!-- ================================================================= -->
         <main id="tab-fusion" class="hud-tab-pane active">
-            
+
             <div class="tactical-deck-grid">
-                
+
                 <!-- CARD 1: 2D ROTATING RADAR & PROXIMITY SWEEP -->
                 <div class="hud-card card-radar">
                     <div class="card-bar">
@@ -371,9 +381,12 @@
                                 <span id="test-status-tag" class="status-pill pill-cyan">READY</span>
                             </div>
                             <div class="bench-btn-grid">
-                                <button id="btn-test-motor-l" class="btn-secondary" onclick="runMotorTest('left')">▶ Test Left (ENA/GPIO13)</button>
-                                <button id="btn-test-motor-r" class="btn-secondary" onclick="runMotorTest('right')">▶ Test Right (ENB/GPIO25)</button>
-                                <button id="btn-test-motor-both" class="btn-primary" onclick="runMotorTest('both')">⚡ Test Both Motors</button>
+                                <button id="btn-test-motor-l" class="btn-secondary" onclick="runMotorTest('left')">▶
+                                    Test Left (ENA/GPIO13)</button>
+                                <button id="btn-test-motor-r" class="btn-secondary" onclick="runMotorTest('right')">▶
+                                    Test Right (ENB/GPIO25)</button>
+                                <button id="btn-test-motor-both" class="btn-primary" onclick="runMotorTest('both')">⚡
+                                    Test Both Motors</button>
                             </div>
                         </div>
                     </div>
@@ -393,7 +406,8 @@
                 <div class="timeline-log-box" id="timeline-log-box">
                     <div class="log-entry log-info">
                         <span class="log-time">[BOOT]</span>
-                        <span class="log-msg">Mining Fog-Safety Rover HUD initialized. Establishing WebSocket telemetry...</span>
+                        <span class="log-msg">Mining Fog-Safety Rover HUD initialized. Establishing WebSocket
+                            telemetry...</span>
                     </div>
                 </div>
             </div>
@@ -404,7 +418,7 @@
         <!-- TAB 2: TRANSMITTER & 16-CH OSCILLOSCOPE -->
         <!-- ================================================================= -->
         <main id="tab-transmitter" class="hud-tab-pane">
-            
+
             <!-- Learn Banner / Targeting Modal -->
             <div id="learn-banner" class="learn-overlay-card hidden">
                 <div class="reticle-spinner"></div>
@@ -413,13 +427,14 @@
                         <span class="learn-tag">AUTO-LEARN ACTIVE</span>
                         <h3 id="learn-title">LEARNING CHANNEL...</h3>
                     </div>
-                    <p id="learn-subtitle">Move the stick or flip the switch on your RadioMaster T8L transmitter now...</p>
+                    <p id="learn-subtitle">Move the stick or flip the switch on your RadioMaster T8L transmitter now...
+                    </p>
                 </div>
                 <button id="btn-cancel-learn" class="btn-cancel">ABORT</button>
             </div>
 
             <div class="transmitter-layout-grid">
-                
+
                 <!-- Function Mapping Cards -->
                 <div class="hud-card">
                     <div class="card-bar">
@@ -431,7 +446,7 @@
                     </div>
 
                     <div class="mapping-slot-stack">
-                        
+
                         <!-- Throttle -->
                         <div class="mapping-slot-card" id="slot-throttle">
                             <div class="slot-head">
@@ -527,7 +542,8 @@
                         </div>
 
                         <div class="save-bar">
-                            <button id="btn-save-mapping" class="btn-save-nvs">💾 COMMIT MAPPING TO ESP32 NVS FLASH</button>
+                            <button id="btn-save-mapping" class="btn-save-nvs">💾 COMMIT MAPPING TO ESP32 NVS
+                                FLASH</button>
                             <span id="save-status" class="save-status-indicator"></span>
                         </div>
 
@@ -557,7 +573,7 @@
         <!-- ================================================================= -->
         <main id="tab-system" class="hud-tab-pane">
             <div class="system-config-grid">
-                
+
                 <!-- Safety Thresholds -->
                 <div class="hud-card">
                     <div class="card-bar">
@@ -605,7 +621,8 @@
                                     <span class="switch-text" id="val-cfg-obs-brake">DISABLED</span>
                                 </label>
                             </div>
-                            <span class="field-hint">When enabled, automatically blocks forward drive if an obstacle is within 15cm.</span>
+                            <span class="field-hint">When enabled, automatically blocks forward drive if an obstacle is
+                                within 15cm.</span>
                         </div>
                     </div>
                 </div>
@@ -621,11 +638,14 @@
                     </div>
 
                     <div class="config-form-body">
-                        <p class="wifi-desc">The rover operates independently as a local SoftAP (<code>MiningRover-Fog</code>). If you wish to link the rover to a mine facility access point, enter the credentials below:</p>
-                        
+                        <p class="wifi-desc">The rover operates independently as a local SoftAP
+                            (<code>MiningRover-Fog</code>). If you wish to link the rover to a mine facility access
+                            point, enter the credentials below:</p>
+
                         <div class="input-field">
                             <label for="sta-ssid">Site Access Point SSID:</label>
-                            <input type="text" id="sta-ssid" class="tactical-text-input" placeholder="e.g. MineNet-Tunnel4">
+                            <input type="text" id="sta-ssid" class="tactical-text-input"
+                                placeholder="e.g. MineNet-Tunnel4">
                         </div>
 
                         <div class="input-field">
@@ -657,4 +677,5 @@
 
     <script src="app.js"></script>
 </body>
+
 </html>
