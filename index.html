@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mining Fog-Safety Rover // Advanced Tactical HUD</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap"
+        media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap">
+    </noscript>
+</head>
+
+<body>
+    <!-- Tactical Scanline & CRT Vignette Overlay -->
+    <div class="crt-overlay"></div>
+    <div class="scanlines"></div>
+
+    <!-- Master Header -->
+    <header class="tactical-header">
+        <div class="header-left">
+            <div class="mission-orb">
+                <div class="orb-core"></div>
+                <div class="orb-ring"></div>
+            </div>
+            <div class="mission-titles">
+                <div class="title-row">
+                    <span class="unit-id">ROVER // UNIT-FOG-01</span>
+                    <span class="classification-tag">SUBTERRANEAN PILOT</span>
+                </div>
+                <div class="sub-row">
+                    <span class="system-status">SENSOR FUSION & THREAT RECON HUD</span>
+                    <span class="divider">|</span>
+                    <span class="protocol-tag">ELRS CRSF 420K</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center Threat Matrix Dial -->
+        <div class="header-center">
+            <div class="threat-dial-container" id="threat-dial-box">
+                <div class="threat-glow"></div>
+                <svg class="threat-svg" viewBox="0 0 100 100">
+                    <circle class="threat-bg-track" cx="50" cy="50" r="42"></circle>
+                    <circle id="threat-bar" class="threat-bar" cx="50" cy="50" r="42"></circle>
+                </svg>
+                <div class="threat-inner-data">
+                    <span class="threat-score" id="threat-score-val">0</span>
+                    <span class="threat-label">THREAT</span>
+                </div>
+            </div>
+            <div class="threat-badge-group">
+                <div id="threat-level-badge" class="pill-badge pill-nominal">DEFCON 5: NOMINAL</div>
+                <span class="threat-sub">MULTI-SENSOR FUSED INDEX</span>
+            </div>
+        </div>
+
+        <!-- Header Right: Quick Status, Audio & E-Stop -->
+        <div class="header-right">
+            <div class="telemetry-badges">
+                <div id="badge-link" class="stat-badge stat-danger">
+                    <span class="badge-dot"></span>
+                    <span id="badge-link-text">LINK DOWN</span>
+                </div>
+                <div id="badge-arm" class="stat-badge stat-amber">
+                    <span class="badge-dot"></span>
+                    <span id="badge-arm-text">DISARMED</span>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <button id="btn-audio-toggle" class="btn-icon" title="Toggle Tactical Audio FX">
+                    <span id="audio-icon">🔊</span>
+                </button>
+                <button id="btn-fullscreen" class="btn-icon hide-mobile" title="Toggle Fullscreen HUD">
+                    ⛶
+                </button>
+                <button id="btn-master-estop" class="btn-tactical-estop" title="Emergency Motor Cut-Off">
+                    <span class="estop-icon">🛑</span>
+                    <span class="estop-label">E-STOP</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Priority Hazard Alarm Banner Strip -->
+    <div id="hazard-alarms-panel" class="alarms-panel">
+        <div id="alarm-flame" class="hazard-strobe fire-strobe hidden">
+            <div class="strobe-icon">🔥</div>
+            <div class="strobe-body">
+                <div class="strobe-title">THERMAL INTRUSION // OPEN FLAME DETECTED</div>
+                <div class="strobe-desc">Infrared thermal sensor triggered on GPIO33. High-temperature hazard detected.
+                </div>
+            </div>
+            <div class="strobe-tag">CRITICAL</div>
+        </div>
+
+        <div id="alarm-gas" class="hazard-strobe gas-strobe hidden">
+            <div class="strobe-icon">☣️</div>
+            <div class="strobe-body">
+                <div class="strobe-title">ATMOSPHERIC TOXICITY // MINE GAS / SMOKE SPIKE</div>
+                <div class="strobe-desc">MQ135 threshold breached on GPIO35. Hazardous gas/hydrocarbon concentration
+                    detected.</div>
+            </div>
+            <div class="strobe-tag">HAZARD</div>
+        </div>
+
+        <div id="alarm-tilt" class="hazard-strobe tilt-strobe hidden">
+            <div class="strobe-icon">⚠️</div>
+            <div class="strobe-body">
+                <div class="strobe-title">CHASSIS INSTABILITY // ROLLOVER RISK DETECTED</div>
+                <div class="strobe-desc">MPU6050 reports total inclination exceeds safety ceiling or inverted chassis
+                    state.</div>
+            </div>
+            <div class="strobe-tag">WARNING</div>
+        </div>
+
+        <div id="alarm-failsafe" class="hazard-strobe failsafe-strobe hidden">
+            <div class="strobe-icon">📡</div>
+            <div class="strobe-body">
+                <div class="strobe-title">CRSF TRANSMITTER LOSS // FAILSAFE ACTIVE</div>
+                <div class="strobe-desc">No valid CRSF frames for >500ms. Drive motors locked to zero speed.</div>
+            </div>
+            <div class="strobe-tag">SAFETY STOP</div>
+        </div>
+    </div>
+
+    <!-- Main Mission Control Body -->
+    <div class="hud-main-container">
+
+        <!-- Tactical Navigation Bar -->
+        <nav class="hud-nav">
+            <button class="nav-tab active" data-tab="tab-fusion">
+                <span class="tab-icon">🎯</span>
+                <span class="tab-text">SENSOR FUSION & TACTICAL DECK</span>
+            </button>
+            <button class="nav-tab" data-tab="tab-transmitter">
+                <span class="tab-icon">🎮</span>
+                <span class="tab-text">TRANSMITTER & 16-CH OSCILLOSCOPE</span>
+            </button>
+            <button class="nav-tab" data-tab="tab-system">
+                <span class="tab-icon">⚙️</span>
+                <span class="tab-text">CALIBRATION & MINE SITE WIFI</span>
+            </button>
+        </nav>
+
+        <!-- ================================================================= -->
+        <!-- TAB 1: SENSOR FUSION & TACTICAL DECK -->
+        <!-- ================================================================= -->
+        <main id="tab-fusion" class="hud-tab-pane active">
+
+            <div class="tactical-deck-grid">
+
+                <!-- CARD 1: 2D ROTATING RADAR & PROXIMITY SWEEP -->
+                <div class="hud-card card-radar">
+                    <div class="card-bar">
+                        <div class="card-title-group">
+                            <span class="card-code">RADAR-01</span>
+                            <span class="card-title">PROXIMITY SONAR & OBSTACLE MAP</span>
+                        </div>
+                        <span id="radar-tag" class="status-pill pill-cyan">ACTIVE SWEEP</span>
+                    </div>
+
+                    <div class="radar-viewport">
+                        <canvas id="radar-canvas" width="280" height="280"></canvas>
+                        <div class="radar-hud-overlay">
+                            <div class="range-rings-legend">
+                                <span>50cm</span>
+                                <span>100cm</span>
+                                <span>200cm</span>
+                                <span>400cm</span>
+                            </div>
+                            <div class="bearing-legend">0° FWD</div>
+                        </div>
+                    </div>
+
+                    <div class="radar-telemetry-row">
+                        <div class="data-block">
+                            <span class="data-label">OBSTACLE DIST</span>
+                            <span class="data-val highlight-val" id="val-distance">---</span>
+                            <span class="data-unit">cm</span>
+                        </div>
+                        <div class="data-block">
+                            <span class="data-label">PROXIMITY ZONE</span>
+                            <span class="data-val" id="val-prox-zone">CLEAR</span>
+                        </div>
+                        <div class="data-block">
+                            <span class="data-label">COLLISION BRAKE</span>
+                            <span class="data-val" id="val-brake-state">STANDBY</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARD 2: 3D SPATIAL ATTITUDE & INCLINOMETER -->
+                <div class="hud-card card-attitude">
+                    <div class="card-bar">
+                        <div class="card-title-group">
+                            <span class="card-code">IMU-6DOF</span>
+                            <span class="card-title">SPATIAL ATTITUDE & ROLLOVER GYRO</span>
+                        </div>
+                        <span id="imu-tag" class="status-pill pill-cyan">MPU6050 LEVEL</span>
+                    </div>
+
+                    <div class="attitude-viewport">
+                        <div class="gyro-sphere">
+                            <div class="gyro-sky" id="gyro-sky"></div>
+                            <div class="gyro-ground" id="gyro-ground"></div>
+                            <div class="gyro-pitch-ladder" id="gyro-ladder"></div>
+                            <div class="gyro-horizon-bar" id="gyro-horizon"></div>
+                            <div class="gyro-reticle">
+                                <div class="reticle-center"></div>
+                                <div class="reticle-wings"></div>
+                            </div>
+                            <div class="gyro-roll-ring" id="gyro-roll-ring"></div>
+                        </div>
+                    </div>
+
+                    <div class="attitude-metrics-grid">
+                        <div class="data-block">
+                            <span class="data-label">PITCH ANGLE</span>
+                            <span class="data-val" id="val-pitch">0.0°</span>
+                        </div>
+                        <div class="data-block">
+                            <span class="data-label">ROLL ANGLE</span>
+                            <span class="data-val" id="val-roll">0.0°</span>
+                        </div>
+                        <div class="data-block">
+                            <span class="data-label">TOTAL INCLINATION</span>
+                            <span class="data-val highlight-val" id="val-tilt">0.0°</span>
+                        </div>
+                        <div class="data-block">
+                            <span class="data-label">GRAVITY G-FORCE</span>
+                            <span class="data-val" id="val-gforce">1.00 G</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARD 3: SUBTERRANEAN MICROCLIMATE & HAZARD SENSORS -->
+                <div class="hud-card card-climate">
+                    <div class="card-bar">
+                        <div class="card-title-group">
+                            <span class="card-code">ENV-HAZARD</span>
+                            <span class="card-title">MINE SHAFT MICROCLIMATE & TOXICITY</span>
+                        </div>
+                        <span id="climate-tag" class="status-pill pill-cyan">SAMPLING</span>
+                    </div>
+
+                    <div class="climate-content">
+                        <!-- Temp & Humidity Gauges -->
+                        <div class="env-gauge-row">
+                            <div class="env-gauge-card">
+                                <div class="env-top">
+                                    <span class="env-icon">🌡️</span>
+                                    <div class="env-text">
+                                        <span class="env-label">TEMPERATURE</span>
+                                        <div class="env-val-row">
+                                            <span class="env-number" id="val-temp">--.-</span>
+                                            <span class="env-unit">°C</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="env-bar-track">
+                                    <div class="env-bar-fill bar-temp" id="bar-temp" style="width: 45%;"></div>
+                                </div>
+                            </div>
+
+                            <div class="env-gauge-card">
+                                <div class="env-top">
+                                    <span class="env-icon">💧</span>
+                                    <div class="env-text">
+                                        <span class="env-label">HUMIDITY</span>
+                                        <div class="env-val-row">
+                                            <span class="env-number" id="val-humidity">--</span>
+                                            <span class="env-unit">%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="env-bar-track">
+                                    <div class="env-bar-fill bar-humidity" id="bar-humidity" style="width: 60%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Derived Sensor Fusion Diagnostics -->
+                        <div class="fusion-diagnostics-grid">
+                            <div class="diag-card">
+                                <span class="diag-label">DEW POINT (CONDENSATION)</span>
+                                <span class="diag-val" id="val-dew-point">--.- °C</span>
+                            </div>
+                            <div class="diag-card">
+                                <span class="diag-label">HEAVY FOG DENSITY RISK</span>
+                                <span class="diag-val" id="val-fog-risk">MODERATE</span>
+                            </div>
+                            <div class="diag-card">
+                                <span class="diag-label">IR FLAME OPTICAL SENSOR</span>
+                                <span class="diag-val" id="val-flame-status">CLEAR</span>
+                            </div>
+                            <div class="diag-card">
+                                <span class="diag-label">MQ135 AIR TOXICITY/SMOKE</span>
+                                <span class="diag-val" id="val-gas-status">NOMINAL</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARD 4: ACTUATOR POWER MATRIX & MAST TURRET -->
+                <div class="hud-card card-actuators">
+                    <div class="card-bar">
+                        <div class="card-title-group">
+                            <span class="card-code">PWR-DRIVE</span>
+                            <span class="card-title">DRIVE MOTORS & MAST TURRET SERVO</span>
+                        </div>
+                        <span id="drive-tag" class="status-pill pill-cyan">L298N DUAL PWM</span>
+                    </div>
+
+                    <div class="actuators-body">
+                        <!-- Dual Motor Power Gauges -->
+                        <div class="motor-power-split">
+                            <div class="motor-track-card">
+                                <div class="motor-info-top">
+                                    <span class="motor-name">LEFT TREAD / MOTOR</span>
+                                    <span class="motor-pwm" id="val-motor-l">0 PWM</span>
+                                </div>
+                                <div class="bipolar-gauge">
+                                    <div class="gauge-center-mark"></div>
+                                    <div class="bipolar-fill" id="bar-motor-l"></div>
+                                </div>
+                                <div class="motor-stats-bot">
+                                    <span id="dir-motor-l">IDLE</span>
+                                    <span id="pct-motor-l">0%</span>
+                                </div>
+                            </div>
+
+                            <div class="motor-track-card">
+                                <div class="motor-info-top">
+                                    <span class="motor-name">RIGHT TREAD / MOTOR</span>
+                                    <span class="motor-pwm" id="val-motor-r">0 PWM</span>
+                                </div>
+                                <div class="bipolar-gauge">
+                                    <div class="gauge-center-mark"></div>
+                                    <div class="bipolar-fill" id="bar-motor-r"></div>
+                                </div>
+                                <div class="motor-stats-bot">
+                                    <span id="dir-motor-r">IDLE</span>
+                                    <span id="pct-motor-r">0%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Camera / Sensor Mast Elevation Dial -->
+                        <div class="mast-turret-card">
+                            <div class="mast-header">
+                                <span class="mast-label">SENSOR MAST / CAMERA TILT ELEVATION</span>
+                                <span class="mast-angle" id="val-mast-angle">90°</span>
+                            </div>
+                            <div class="mast-protractor-track">
+                                <div class="protractor-scale">
+                                    <span>0° (DOWN)</span>
+                                    <span>45°</span>
+                                    <span>90° (HORIZON)</span>
+                                    <span>135°</span>
+                                    <span>180° (SKY)</span>
+                                </div>
+                                <div class="protractor-bar-bg">
+                                    <div class="protractor-bar-fill" id="bar-mast-angle" style="width: 50%;"></div>
+                                    <div class="protractor-cursor" id="cursor-mast" style="left: 50%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hardware Bench Test Tools -->
+                        <div class="motor-bench-test-card">
+                            <div class="bench-header">
+                                <span class="bench-title">HARDWARE MOTOR DIAGNOSTIC TEST (2 SECONDS)</span>
+                                <span id="test-status-tag" class="status-pill pill-cyan">READY</span>
+                            </div>
+                            <div class="bench-btn-grid">
+                                <button id="btn-test-motor-l" class="btn-secondary" onclick="runMotorTest('left')">▶
+                                    Test Left (ENA/GPIO13)</button>
+                                <button id="btn-test-motor-r" class="btn-secondary" onclick="runMotorTest('right')">▶
+                                    Test Right (ENB/GPIO25)</button>
+                                <button id="btn-test-motor-both" class="btn-primary" onclick="runMotorTest('both')">⚡
+                                    Test Both Motors</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Event Timeline Log -->
+            <div class="hud-card card-timeline">
+                <div class="card-bar">
+                    <div class="card-title-group">
+                        <span class="card-code">SYS-LOG</span>
+                        <span class="card-title">REAL-TIME MISSION TIMELINE & TELEMETRY STREAM</span>
+                    </div>
+                    <button id="btn-clear-log" class="btn-micro">CLEAR</button>
+                </div>
+                <div class="timeline-log-box" id="timeline-log-box">
+                    <div class="log-entry log-info">
+                        <span class="log-time">[BOOT]</span>
+                        <span class="log-msg">Mining Fog-Safety Rover HUD initialized. Establishing WebSocket
+                            telemetry...</span>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- ================================================================= -->
+        <!-- TAB 2: TRANSMITTER & 16-CH OSCILLOSCOPE -->
+        <!-- ================================================================= -->
+        <main id="tab-transmitter" class="hud-tab-pane">
+
+            <!-- Learn Banner / Targeting Modal -->
+            <div id="learn-banner" class="learn-overlay-card hidden">
+                <div class="reticle-spinner"></div>
+                <div class="learn-info">
+                    <div class="learn-header-row">
+                        <span class="learn-tag">AUTO-LEARN ACTIVE</span>
+                        <h3 id="learn-title">LEARNING CHANNEL...</h3>
+                    </div>
+                    <p id="learn-subtitle">Move the stick or flip the switch on your RadioMaster T8L transmitter now...
+                    </p>
+                </div>
+                <button id="btn-cancel-learn" class="btn-cancel">ABORT</button>
+            </div>
+
+            <div class="transmitter-layout-grid">
+
+                <!-- Function Mapping Cards -->
+                <div class="hud-card">
+                    <div class="card-bar">
+                        <div class="card-title-group">
+                            <span class="card-code">RC-BIND</span>
+                            <span class="card-title">ROVER CONTROL ASSIGNMENTS (NVS FLASH)</span>
+                        </div>
+                        <span class="status-pill pill-cyan">RADIOMASTER T8L</span>
+                    </div>
+
+                    <div class="mapping-slot-stack">
+
+                        <!-- Throttle -->
+                        <div class="mapping-slot-card" id="slot-throttle">
+                            <div class="slot-head">
+                                <div class="slot-title-wrap">
+                                    <span class="slot-glyph">🕹️</span>
+                                    <div>
+                                        <span class="slot-main-title">THROTTLE / DRIVE SPEED</span>
+                                        <span class="slot-sub-title">Forward and reverse motor acceleration</span>
+                                    </div>
+                                </div>
+                                <button class="btn-learn" data-func="throttle">🎯 Detect Movement</button>
+                            </div>
+                            <div class="slot-config-row">
+                                <label>Assigned Channel:</label>
+                                <select id="sel-ch-throttle" class="tactical-select"></select>
+                                <label class="switch-wrap">
+                                    <input type="checkbox" id="inv-throttle">
+                                    <span class="switch-slider"></span>
+                                    <span class="switch-text">INVERT POLARITY</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Steering / Yaw -->
+                        <div class="mapping-slot-card" id="slot-yaw">
+                            <div class="slot-head">
+                                <div class="slot-title-wrap">
+                                    <span class="slot-glyph">🕹️</span>
+                                    <div>
+                                        <span class="slot-main-title">YAW / STEERING TURN</span>
+                                        <span class="slot-sub-title">Differential left/right pivot and steering</span>
+                                    </div>
+                                </div>
+                                <button class="btn-learn" data-func="yaw">🎯 Detect Movement</button>
+                            </div>
+                            <div class="slot-config-row">
+                                <label>Assigned Channel:</label>
+                                <select id="sel-ch-yaw" class="tactical-select"></select>
+                                <label class="switch-wrap">
+                                    <input type="checkbox" id="inv-yaw">
+                                    <span class="switch-slider"></span>
+                                    <span class="switch-text">INVERT POLARITY</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Mast Tilt -->
+                        <div class="mapping-slot-card" id="slot-tilt">
+                            <div class="slot-head">
+                                <div class="slot-title-wrap">
+                                    <span class="slot-glyph">📐</span>
+                                    <div>
+                                        <span class="slot-main-title">MAST / CAMERA TILT SERVO</span>
+                                        <span class="slot-sub-title">Analog pot knob to 0°-180° elevation angle</span>
+                                    </div>
+                                </div>
+                                <button class="btn-learn" data-func="tilt">🎯 Detect Movement</button>
+                            </div>
+                            <div class="slot-config-row">
+                                <label>Assigned Channel:</label>
+                                <select id="sel-ch-tilt" class="tactical-select"></select>
+                                <label class="switch-wrap">
+                                    <input type="checkbox" id="inv-tilt">
+                                    <span class="switch-slider"></span>
+                                    <span class="switch-text">INVERT POLARITY</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Aux Switch -->
+                        <div class="mapping-slot-card" id="slot-aux">
+                            <div class="slot-head">
+                                <div class="slot-title-wrap">
+                                    <span class="slot-glyph">🔘</span>
+                                    <div>
+                                        <span class="slot-main-title">AUXILIARY SAFETY / ARM SWITCH</span>
+                                        <span class="slot-sub-title">Multi-position switch function assignment</span>
+                                    </div>
+                                </div>
+                                <button class="btn-learn" data-func="aux">🎯 Detect Movement</button>
+                            </div>
+                            <div class="slot-config-row">
+                                <label>Assigned Channel:</label>
+                                <select id="sel-ch-aux" class="tactical-select"></select>
+                                <label>Mode:</label>
+                                <select id="sel-aux-mode" class="tactical-select">
+                                    <option value="3">Auto-Arm (Always Armed with Transmitter Link)</option>
+                                    <option value="0">Arm / Disarm Switch (High=Armed, Low=Disarmed)</option>
+                                    <option value="1">Headlamp / Aux Light Toggle</option>
+                                    <option value="2">Safety Idle Stop</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="save-bar">
+                            <button id="btn-save-mapping" class="btn-save-nvs">💾 COMMIT MAPPING TO ESP32 NVS
+                                FLASH</button>
+                            <span id="save-status" class="save-status-indicator"></span>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- 16-Channel CRSF Live Oscilloscope & Meters -->
+                <div class="hud-card">
+                    <div class="card-bar">
+                        <div class="card-title-group">
+                            <span class="card-code">CRSF-16</span>
+                            <span class="card-title">16-CHANNEL LIVE RC BUS MONITOR</span>
+                        </div>
+                        <span id="channels-tag" class="status-pill pill-cyan">420000 BAUD</span>
+                    </div>
+
+                    <div class="channels-matrix" id="channels-container">
+                        <!-- Populated dynamically by JavaScript -->
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <!-- ================================================================= -->
+        <!-- TAB 3: CALIBRATION & MINE SITE WIFI -->
+        <!-- ================================================================= -->
+        <main id="tab-system" class="hud-tab-pane">
+            <div class="system-config-grid">
+
+                <!-- Safety Thresholds -->
+                <div class="hud-card">
+                    <div class="card-bar">
+                        <div class="card-title-group">
+                            <span class="card-code">CAL-THRESH</span>
+                            <span class="card-title">SAFETY THRESHOLDS & STICK DEADBAND</span>
+                        </div>
+                        <span class="status-pill pill-cyan">CALIBRATION</span>
+                    </div>
+
+                    <div class="config-form-body">
+                        <div class="slider-field">
+                            <div class="slider-label-row">
+                                <label for="cfg-deadband">Control Stick Center Deadband:</label>
+                                <span class="slider-num" id="val-cfg-deadband">35</span>
+                            </div>
+                            <input type="range" id="cfg-deadband" min="5" max="150" value="35">
+                            <span class="field-hint">Prevents drift when transmitter sticks are centered.</span>
+                        </div>
+
+                        <div class="slider-field">
+                            <div class="slider-label-row">
+                                <label for="cfg-tilt">Max Chassis Rollover Warning Threshold (°):</label>
+                                <span class="slider-num" id="val-cfg-tilt">35°</span>
+                            </div>
+                            <input type="range" id="cfg-tilt" min="15" max="60" value="35">
+                            <span class="field-hint">Triggers rollover alarms if inclination exceeds this angle.</span>
+                        </div>
+
+                        <div class="slider-field">
+                            <div class="slider-label-row">
+                                <label for="cfg-speed">Motor Speed Limit Ceiling (0-255 PWM):</label>
+                                <span class="slider-num" id="val-cfg-speed">255</span>
+                            </div>
+                            <input type="range" id="cfg-speed" min="50" max="255" value="255">
+                            <span class="field-hint">Limits maximum drive velocity in confined mine tunnels.</span>
+                        </div>
+
+                        <div class="slider-field">
+                            <div class="slider-label-row">
+                                <label for="cfg-obs-brake">Obstacle Collision Auto-Brake:</label>
+                                <label class="switch-wrap">
+                                    <input type="checkbox" id="cfg-obs-brake">
+                                    <span class="switch-slider"></span>
+                                    <span class="switch-text" id="val-cfg-obs-brake">DISABLED</span>
+                                </label>
+                            </div>
+                            <span class="field-hint">When enabled, automatically blocks forward drive if an obstacle is
+                                within 15cm.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mine Site WiFi Settings -->
+                <div class="hud-card">
+                    <div class="card-bar">
+                        <div class="card-title-group">
+                            <span class="card-code">NET-WIFI</span>
+                            <span class="card-title">MINE INFRASTRUCTURE WIFI UPLINK (STA)</span>
+                        </div>
+                        <span class="status-pill pill-cyan">OPTIONAL STA</span>
+                    </div>
+
+                    <div class="config-form-body">
+                        <p class="wifi-desc">The rover operates independently as a local SoftAP
+                            (<code>MiningRover-Fog</code>). If you wish to link the rover to a mine facility access
+                            point, enter the credentials below:</p>
+
+                        <div class="input-field">
+                            <label for="sta-ssid">Site Access Point SSID:</label>
+                            <input type="text" id="sta-ssid" class="tactical-text-input"
+                                placeholder="e.g. MineNet-Tunnel4">
+                        </div>
+
+                        <div class="input-field">
+                            <label for="sta-pass">Site Access Point Password:</label>
+                            <input type="password" id="sta-pass" class="tactical-text-input" placeholder="••••••••••••">
+                        </div>
+
+                        <div class="save-bar">
+                            <button id="btn-save-wifi" class="btn-save-nvs">📡 UPDATE WIFI UPLINK CREDENTIALS</button>
+                            <span id="wifi-status" class="save-status-indicator"></span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+    </div>
+
+    <!-- Reconnect Modal -->
+    <div id="disconnect-overlay" class="disconnect-modal hidden">
+        <div class="disconnect-card">
+            <div class="radar-lost-ping"></div>
+            <h2>TELEMETRY LINK SEVERED</h2>
+            <p>Attempting automatic reconnect to rover WebSocket...</p>
+            <button id="btn-reconnect" class="btn-reconnect">RETRY CONNECTION NOW</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
